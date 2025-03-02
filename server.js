@@ -1,10 +1,11 @@
 import express from 'express';
-import cors from 'cors';
+import pg from 'pg';
 import dotenv from 'dotenv';
-import pkg from 'pg';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 
 dotenv.config();
-const { Pool } = pkg;
+const { Pool } = pg;
 
 const app = express();
 app.use(cors());
@@ -15,7 +16,7 @@ const pool = new Pool({
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+    port: process.env.DB_PORT,
 });
 
 // Test Connection
@@ -24,13 +25,22 @@ pool.connect()
     .catch(err => console.error('Error connecting to PostgreSQL', err));
 
 // API Routes
-app.get('/members', async (res) => {
+app.get('/members', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM tb_member');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
         res.status(500).send("An unexpected error occurred");
+    }
+});
+
+app.get('/books', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM tb_book');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 });
 
