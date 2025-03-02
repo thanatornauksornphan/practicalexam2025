@@ -14,7 +14,7 @@ const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
-    password: String(process.env.DB_PASS),
+    password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
 });
 
@@ -24,9 +24,9 @@ pool.connect()
     .catch(err => console.error('Error connecting to PostgreSQL', err));
 
 // API Routes
-app.get('/members', async (req, res) => {
+app.get('/members', async (res) => {
     try {
-        const result = await pool.query('SELECT * FROM members');
+        const result = await pool.query('SELECT * FROM tb_member');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
