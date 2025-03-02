@@ -1,17 +1,21 @@
-import express from 'express';
-import pg from 'pg';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import bodyParser from 'body-parser';
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import pg from "pg";
+import cors from "cors";
+import dotenv from "dotenv";
 
+// Load environment variables from .env file
 dotenv.config();
-const { Pool } = pg;
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = 5000;
 
-const pool = new Pool({
+// Convert file paths for ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const pool = new pg.Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
@@ -19,30 +23,34 @@ const pool = new Pool({
     port: process.env.DB_PORT,
 });
 
-// Test Connection
-pool.connect()
-    .then(() => console.log('Connected to PostgreSQL'))
-    .catch(err => console.error('Error connecting to PostgreSQL', err));
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-// API Routes
-app.get('/members', async (req, res) => {
+// Serve the homepage
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "borrow_return.html"));
+});
+
+// API routes
+app.get("/api/borrow-return", async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM tb_member');
+        const result = await pool.query(`
+            SELECT br.record_id, br.borrow_date, br.return_date, br.fine, 
+                   b.b_id, b.b_name, m.m_id, m.m_name
+            FROM tb_borrow_return br
+            JOIN tb_book b ON br.b_id = b.b_id
+            JOIN tb_member m ON br.m_id = m.m_id
+        `);
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).send("An unexpected error occurred");
+        console.error("Error fetching data:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
-app.get('/books', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM tb_book');
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+// Start Server
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
