@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Borrow & Return Books</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Borrow & Return Books</title>
+        <script
+            src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <style>
         body {
             background-color: #222;
             color: white;
@@ -48,77 +50,40 @@
         }
         th { background-color: #333; }
     </style>
-</head>
-<body>
+    </head>
+    <body>
 
-    <div id="app" class="container">
-        <h2>Borrow & Return Books</h2>
-        <input type="text" v-model="searchQuery" placeholder="Search...">
-        <button class="search-btn" @click="searchBooks">Search</button>
-        <button class="refresh-btn" @click="refreshBooks">Refresh</button>
-        <br>
-        <button class="borrow-btn">Borrow-Return</button>
-        <button class="stats-btn">Statistics</button>
+        <div id="app" class="container">
+            <h2>Borrow & Return Books</h2>
+            <input type="text" v-model="searchQuery"
+                placeholder="Search for a book">
+            <button>Search</button>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Book ID</th>
-                    <th>Book Name</th>
-                    <th>Member Name</th>
-                    <th>Borrow Date</th>
-                    <th>Return Date</th>
-                    <th>Fine</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="entry in filteredData" :key="entry.record_id">
-                    <td>{{ entry.b_id }}</td>
-                    <td>{{ entry.b_name }}</td>
-                    <td>{{ entry.m_name }}</td>
-                    <td>{{ entry.borrow_date }}</td>
-                    <td>{{ entry.return_date || 'Not Returned' }}</td>
-                    <td>{{ entry.fine || '0' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book ID</th>
+                        <th>Book Name</th>
+                        <th>Member Name</th>
+                        <th>Borrow Date</th>
+                        <th>Return Date</th>
+                        <th>Fine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="book in filteredBooks" :key="book.b_id">
+                        <td>{{ book.b_id }}</td>
+                        <td>{{ book.b_name }}</td>
+                        <td>{{ book.m_name }}</td>
+                        <td>{{ formatDate(book.borrow_date) }}</td>
+                        <td>{{ formatDate(book.return_date) }}</td>
+                        <td>{{ book.fine || 'No Fine' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-    <script>
-        const { createApp } = Vue;
+        <script src="borrow_return.js"></script>
 
-        createApp({
-            data() {
-                return {
-                    searchQuery: '',
-                    borrowData: []
-                };
-            },
-            computed: {
-                filteredData() {
-                    return this.borrowData.filter(entry =>
-                        entry.b_name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                        entry.m_name.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    );
-                }
-            },
-            methods: {
-                fetchBorrowData() {
-                    axios.get('http://localhost:5000/api/borrow-return')
-                        .then(response => {
-                            this.borrowData = response.data;
-                        })
-                        .catch(error => console.error("Error fetching data:", error));
-                },
-                searchBooks() {
-                    console.log("Searching:", this.searchQuery);
-                }
-            },
-            mounted() {
-                this.fetchBorrowData();
-            }
-        }).mount('#app');
-    </script>
-
-</body>
+    </body>
 </html>

@@ -2,55 +2,57 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import pg from "pg";
-import cors from "cors";
 import dotenv from "dotenv";
 
-// Load environment variables from .env file
 dotenv.config();
 
 const app = express();
 const PORT = 5000;
 
-// Convert file paths for ESM compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+// PostgreSQL Database Connection
 const pool = new pg.Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    port: process.env.DB_PORT
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Convert file paths for ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static files from 'public' folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// Serve the homepage
+// API to get borrow & return data
+app.get("/api/borrowed-books", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                br.b_id, 
+                b.b_name, 
+                m.m_name, 
+                br.borrow_date, 
+                br.return_date, 
+                br.fine
+            FROM tb_borrow_return br
+            JOIN tb_book b ON br.b_id = b.b_id
+            JOIN tb_member m ON br.m_user = m.m_user
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching borrowed books:", err);
+        res.status(500).json({ error: "Database query error" });
+    }
+});
+
+// Default route to serve the HTML page
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "borrow_return.html"));
 });
 
-// API routes
-app.get("/api/borrow-return", async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT br.record_id, br.borrow_date, br.return_date, br.fine, 
-                   b.b_id, b.b_name, m.m_id, m.m_name
-            FROM tb_borrow_return br
-            JOIN tb_book b ON br.b_id = b.b_id
-            JOIN tb_member m ON br.m_id = m.m_id
-        `);
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Error fetching data:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-
-// Start Server
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
