@@ -1,18 +1,22 @@
 const { createApp, ref, onMounted } = Vue;
 
-const app = createApp({
+const app = Vue.createApp({
     setup() {
         const books = ref([]);
         const searchQuery = ref("");
         const borrowModal = ref(null);
         const isModalOpen = ref(false);
-        const newBorrow = ref({
+        const isBorrowMode = ref(true);
+        const bookName = ref("");
+        const newEntry = ref({
             b_id: '',
             m_user: '',
             borrow_date: new Date().toISOString().substr(0, 10),
             return_date: '',
             fine: 0
         });
+
+        const tempEntries = ref([]);
 
         // Fetch all borrowed books from the API
         const fetchAllBooks = async () => {
@@ -38,36 +42,84 @@ const app = createApp({
 
         // Show the borrow modal
         const showBorrowModal = () => {
-            const modal = new bootstrap.Modal(document.getElementById('borrowModal'));
-            modal.show();
-            borrowModal.value = modal;
+            isModalOpen.value = true;
+            isBorrowMode.value = true;
+            clearEntry();
+            tempEntries.value = [];
         };
 
-        // Save a new borrow record
-        const saveBorrowReturn = async () => {
-            try {
-                const response = await axios.post('/api/borrow-return', newBorrow.value);
-                console.log('Saved Borrow:', response.data);
+        // Switch between Borrow and Return mode
+        const toggleMode = (mode) => {
+            isBorrowMode.value = mode === 'borrow';
+            isBorrowMode.value = mode === 'return';
+            clearEntry();
+        };
 
-                alert('บันทึกข้อมูลสำเร็จ');
-                if (borrowModal.value) {
-                    borrowModal.value.hide();
+        // Add user or book ID to the table
+        const addToTable = (type) => {
+            if (type === 'm_user' && newEntry.value.m_user.trim() === '') return;
+            if (type === 'b_id' && newEntry.value.b_id.trim() === '') return;
+
+            if (type === 'b_id') {
+                try {
+                    const response = axios.get(`/api/books/${newEntry.value.b_id}`);
+                    bookName.value = response.data.name || 'ไม่พบข้อมูลหนังสือ';
+                } catch (error) {
+                    console.error('Error fetching book:', error);
+                    bookName.value = 'ไม่สามารถโหลดข้อมูลหนังสือได้';
+                }
+            }
+        };
+
+        const addEntryToTable = () => {
+            if (!newEntry.value.b_id || (isBorrowMode.value && !newEntry.value.m_user)) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
+
+            tempEntries.value.push({
+                b_id: newEntry.value.b_id,
+                m_user: isBorrowMode.value ? newEntry.value.m_user : 'N/A',
+                book_name: `Book ${newEntry.value.b_id}` // Placeholder for book name, can be fetched later
+            });
+
+            clearEntry(); // Clear input fields after adding
+        };
+
+        // Save Borrow/Return data
+        const saveBorrowReturn = async () => {
+            if (tempEntries.value.length === 0) {
+                alert("ไม่มีข้อมูลที่ต้องบันทึก");
+                return;
+            }
+
+            try {
+                for (const entry of tempEntries.value) {
+                    await axios.post('/api/borrow-return', {
+                        m_user: isBorrowMode.value ? entry.m_user : null,
+                        b_id: entry.b_id,
+                        action: isBorrowMode.value ? 'borrow' : 'return'
+                    });
                 }
 
-                // Reset form
-                newBorrow.value = {
-                    b_id: '',
-                    m_user: '',
-                    borrow_date: new Date().toISOString().substr(0, 10),
-                    return_date: '',
-                    fine: 0
-                };
-
-                fetchAllBooks(); // Refresh the table after saving
+                alert('บันทึกข้อมูลสำเร็จ');
+                isModalOpen.value = false;
+                tempEntries.value = []; // Clear table after saving
+                fetchAllBooks();
             } catch (error) {
                 console.error('Error saving borrow:', error);
                 alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
             }
+        };
+
+
+        // Clear input fields
+        const clearEntry = () => {
+            newEntry.value = { b_id: '', m_user: '' };
+            bookName.value = '';
+            newEntry.value.borrow_date = new Date().toISOString().substr(0, 10);
+            newEntry.value.return_date = '';
+            newEntry.value.fine = 0;
         };
 
         // Format date to YYYY-MM-DD
@@ -96,20 +148,25 @@ const app = createApp({
         });
 
         return {
+            isModalOpen,
+            isBorrowMode,
+            newEntry,
+            tempEntries,
+            showBorrowModal,
+            addEntryToTable,
+            saveBorrowReturn,
+            clearEntry,
             books,
             searchQuery,
-            newBorrow,
-            fetchAllBooks,
             searchBooks,
-            showBorrowModal,
-            saveBorrowReturn,
+            toggleMode,
+            addToTable,
             formatDate,
             statistics,
-            isModalOpen
+            bookName,
         };
     }
 });
-
 
 // Mount the app
 document.addEventListener('DOMContentLoaded', () => {

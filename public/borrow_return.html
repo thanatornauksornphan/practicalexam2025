@@ -6,7 +6,7 @@
         <title>การยืม-คืนหนังสือ</title>
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
         <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.8/axios.min.js"></script>
+            src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <link rel="stylesheet" href="css/styles.css">
         <script src="js/borrow_return.js"></script>
     </head>
@@ -22,7 +22,7 @@
             <!-- Search Bar -->
             <div class="search-container">
                 <input type="text" v-model="searchQuery" placeholder="ค้นหา">
-                <button class="btn" @click="searchBooks">ค้นหา</button>
+                <button class="button" @click="searchBooks">ค้นหา</button>
             </div>
 
             <!-- Buttons -->
@@ -30,6 +30,7 @@
                 <button class="button" @click="showBorrowModal">
                     ยืม-คืนหนังสือ
                 </button>
+                &nbsp;
                 <button class="button" @click="statistics">ข้อมูลสถิติ</button>
             </div>
 
@@ -59,41 +60,53 @@
                 </table>
             </div>
 
-            <!-- Borrow Modal -->
-            <div class="modal" v-if="isModalOpen">
-                <div class="modal-content">
+            <div v-if="isModalOpen" class="modal-backdrop">
+                <div class="modal">
                     <div class="modal-header">
-                        <h3>ยืม-คืนหนังสือ</h3>
+                        <button :class="{ active: isBorrowMode }" @click="isBorrowMode = true">ยืมหนังสือ</button>
+                        <button :class="{ active: !isBorrowMode }" @click="isBorrowMode = false">คืนหนังสือ</button>
                     </div>
+            
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label>รหัสหนังสือ</label>
-                            <input type="text" v-model="newBorrow.b_id">
+                        <h2>{{ isBorrowMode ? "ยืมหนังสือ" : "คืนหนังสือ" }}</h2>
+            
+                        <!-- Borrow Mode: Require Member ID and Book ID -->
+                        <div class="form-group" v-if="isBorrowMode">
+                            <label>ผู้ที่ต้องการยืม :</label>
+                            <input v-model="newEntry.m_user" type="text" placeholder="กรอกชื่อผู้ใช้งาน">
+                            <button @click="addEntryToTable">Enter</button>
                         </div>
+            
+                        <!-- Book ID input (Required for both Borrow and Return) -->
                         <div class="form-group">
-                            <label>รหัสสมาชิก</label>
-                            <input type="text" v-model="newBorrow.m_user">
+                            <label>รหัสหนังสือ :</label>
+                            <input v-model="newEntry.b_id" type="text" placeholder="กรอกรหัสหนังสือ">
+                            <button @click="addEntryToTable">Enter</button>
                         </div>
-                        <div class="form-group">
-                            <label>วันที่ยืม</label>
-                            <input type="date" v-model="newBorrow.borrow_date">
-                        </div>
-                        <div class="form-group">
-                            <label>วันที่คืน</label>
-                            <input type="date" v-model="newBorrow.return_date">
-                        </div>
-                        <div class="form-group">
-                            <label>ค่าปรับ</label>
-                            <input type="number" v-model="newBorrow.fine">
-                        </div>
+            
+                        <!-- Table to show entered books -->
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Book ID</th>
+                                    <th>Book Name</th>
+                                    <th v-if="isBorrowMode">Member ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="entry in tempEntries" :key="entry.b_id">
+                                    <td>{{ entry.b_id }}</td>
+                                    <td>{{ entry.book_name }}</td>
+                                    <td v-if="isBorrowMode">{{ entry.m_user }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+            
+                    <!-- Footer Buttons -->
                     <div class="modal-footer">
-                        <button class="button" @click="isModalOpen = false">
-                            ยกเลิก
-                        </button>
-                        <button class="button" @click="saveBorrowReturn">
-                            บันทึก
-                        </button>
+                        <button @click="saveBorrowReturn">{{ isBorrowMode ? "ยืมหนังสือ" : "คืนหนังสือ" }}</button>
+                        <button @click="isModalOpen = false">ยกเลิก</button>
                     </div>
                 </div>
             </div>
