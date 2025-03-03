@@ -13,10 +13,16 @@
     <body>
 
         <div id="app" class="container">
-            <h2>การจัดการข้อมูลการยืม-คืนหนังสือ</h2>
+            <h2>Borrow-Return Books Management</h2>
+            <br>
             <input type="text" v-model="searchQuery"
                 placeholder="Search for a book">
-            <button>ค้นหา</button>
+            <button>Search</button>
+            <br><br>
+            <div class="button-group">
+                <button>Borrow-Return</button>
+                <button>Statistics</button>
+            </div>
 
             <table>
                 <thead>

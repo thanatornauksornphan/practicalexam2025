@@ -20,18 +20,17 @@ body {
 /* Container */
 .container {
     width: 80%;
-    max-width: 900px;
-    text-align: center;
+    margin: 20px auto;
+    background: #222;
     padding: 20px;
-    background: #2a2a2a;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
 }
 
 /* Header */
 h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
+    text-align: center;
 }
 
 /* Search Input */
@@ -67,6 +66,38 @@ button {
 button:hover {
     background: #e68a00;
 }
+
+/* Button Group (Top Left) */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: right;
+}
+
+.button-group button {
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.button-group button:first-child {
+    background: #007bff;
+    color: white;
+}
+
+.button-group button:first-child:hover {
+    background: #0056b3;
+}
+
+.button-group button:last-child {
+    background: #28a745;
+    color: white;
+}
+
+.button-group button:last-child:hover {
+    background: #1e7e34;
+}
+
 
 /* Table */
 table {
