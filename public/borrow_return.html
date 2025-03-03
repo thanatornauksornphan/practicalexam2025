@@ -11,86 +11,90 @@
         <link rel="stylesheet" href="styles.css">
     </head>
 
-        <div id="app" class="container">
-            <h2>การจัดการข้อมูลการยืม-คืนหนังสือ</h2>
-            <br>
-            <input type="text" v-model="searchQuery"
-                placeholder="Search for a book">
-            <button>ค้นหา</button>
-            <br><br>
+    <div id="app" class="container">
+        <h2>การจัดการข้อมูลการยืม-คืนหนังสือ</h2>
+        <br>
+        <input type="text" v-model="searchQuery"
+            placeholder="ค้นหารายการ">
+        <button>ค้นหา</button>
+        <br><br>
 
-            <!-- Button Group -->
-            <div class="button-group">
-                <button @click="openModal('borrowReturn')">Borrow-Return</button>
-                <button @click="openModal('statistics')">Statistics</button>
-            </div>
+        <!-- Button Group -->
+        <div class="button-group">
+            <button @click="openModal('borrowReturn')">Borrow-Return</button>
+            <button @click="openModal('statistics')">Statistics</button>
+        </div>
 
-            <!-- Table -->
-            <table>
-                <thead>
-                    <tr>
-                        <th>รหัสหนังสือ</th>
-                        <th>ชื่อหนังสือ</th>
-                        <th>ผู้ยืม-คืน</th>
-                        <th>วันที่ยืม</th>
-                        <th>วันที่คืน</th>
-                        <th>ค่าปรับ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="book in filteredBooks" :key="book.b_id">
-                        <td>{{ book.b_id }}</td>
-                        <td>{{ book.b_name }}</td>
-                        <td>{{ book.m_name }}</td>
-                        <td>{{ formatDate(book.borrow_date) }}</td>
-                        <td>{{ formatDate(book.return_date) }}</td>
-                        <td>{{ book.fine || 'No Fine' }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัสหนังสือ</th>
+                    <th>ชื่อหนังสือ</th>
+                    <th>ผู้ยืม-คืน</th>
+                    <th>วันที่ยืม</th>
+                    <th>วันที่คืน</th>
+                    <th>ค่าปรับ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="book in filteredBooks" :key="book.b_id">
+                    <td>{{ book.b_id }}</td>
+                    <td>{{ book.b_name }}</td>
+                    <td>{{ book.m_name }}</td>
+                    <td>{{ formatDate(book.borrow_date) }}</td>
+                    <td>{{ formatDate(book.return_date) }}</td>
+                    <td>{{ book.fine || 'No Fine' }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-            <!-- Modal -->
-            <div v-if="showModal" class="modal">
-                <div class="modal-content">
-                    <span class="close" @click="closeModal">&times;</span>
-
-                    <!-- Borrow-Return Form -->
-                    <div v-if="modalType === 'borrowReturn'">
-                        <div class="modal-header">
-                            <button @click="activeTab = 'borrow'" :class="{ active: activeTab === 'borrow' }">ยืมหนังสือ</button>
-                            &nbsp;
-                            <button @click="activeTab = 'return'" :class="{ active: activeTab === 'return' }">คืนหนังสือ</button>
-                        </div>
-                        <br>
-                        <div v-if="activeTab === 'borrow'">
-                            <h3>ยืมหนังสือ</h3>
-                            <br>
-                            <label>ผู้ที่ต้องการยืม : </label>
-                            <input type="text" v-model="borrowerName">
-                            <button @click="submitBorrow">ตกลง</button>
-                            <br><br>
-                            <label>รหัสหนังสือ : </label>
-                            <input type="text" v-model="bookID">
-                            <button @click="submitBorrow">ตกลง</button>
-                        </div>
-
-                        <div v-if="activeTab === 'return'">
-                            <h3>Return a Book</h3>
-                            <label>Book ID:</label>
-                            <input type="text" v-model="returnBookID">
-                            <button @click="submitReturn">Enter</button>
-                        </div>
+        <!-- Modal -->
+        <div v-if="showModal" class="modal">
+            <div class="modal-content">
+                <span class="close" @click="closeModal">&times;</span>
+        
+                <!-- Borrow-Return Tabs -->
+                <div class="modal-header">
+                    <button @click="activeTab = 'borrow'" :class="{ active: activeTab === 'borrow' }">ยืมหนังสือ</button>
+                    &nbsp;
+                    <button @click="activeTab = 'return'" :class="{ active: activeTab === 'return' }">คืนหนังสือ</button>
+                </div>
+        
+                <!-- Borrow Section -->
+                <div v-if="activeTab === 'borrow'">
+                    <h3>Borrow a Book</h3>
+        
+                    <label>รหัสผู้ใช้:</label>
+                    <input type="text" v-model="borrowerID">
+        
+                    <br><br>
+        
+                    <label>รหัสหนังสือ:</label>
+                    <input type="text" v-model="bookID">
+        
+                    <br><br>
+        
+                    <button @click="submitForm">ยืนยันข้อมูล</button>
+        
+                    <br><br>
+        
+                    <!-- Display Borrower and Book Info -->
+                    <div v-if="formSubmitted">
+                        <label>ชื่อ - สกุลผู้ยืม: {{ borrowerName }}</label><br>
+                        <label>รหัสหนังสือ: {{ bookID }}</label><br>
+                        <label>ชื่อหนังสือ: {{ bookName }}</label><br>
                     </div>
-
-                    <!-- Statistics Page -->
-                    <div v-if="modalType === 'statistics'">
-                        <h3>Statistics</h3>
-                        <p>Coming soon...</p>
-                    </div>
+        
+                    <br>
+        
+                    <!-- Borrow Button -->
+                    <button @click="submitBorrow" v-if="canSubmitBorrow">ยืมหนังสือ</button>
+                    <button @click="resetForm">ยกเลิก</button>
                 </div>
             </div>
         </div>
-        
+
         <script src="borrow_return.js"></script>
 
     </body>
