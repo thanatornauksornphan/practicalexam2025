@@ -31,12 +31,9 @@ app.post("/api/borrow-return", async (req, res) => {
     const { b_id, m_user, borrow_date, return_date, fine } = req.body;
 
     try {
-        // Generate a unique record_id (you might want to use a more robust method)
-        const recordIdResult = await pool.query("SELECT MAX(CAST(SUBSTRING(record_id, 2) AS INTEGER)) as max_id FROM tb_borrow_return");
-        const maxId = recordIdResult.rows[0].max_id || 0;
-        const newRecordId = `R${(maxId + 1).toString().padStart(5, '0')}`;
+        const recordIdResult = await pool.query("SELECT COALESCE(MAX(CAST(SUBSTRING(record_id, 2) AS INTEGER)), 0) + 1 AS next_id FROM tb_borrow_return");
+        const newRecordId = `R${recordIdResult.rows[0].next_id.toString().padStart(5, '0')}`;
 
-        // Insert the new record
         await pool.query(
             `INSERT INTO tb_borrow_return 
             (record_id, b_id, m_user, borrow_date, return_date, fine) 
@@ -53,7 +50,7 @@ app.post("/api/borrow-return", async (req, res) => {
 
 // API to search borrowed books
 app.get("/api/borrowed-books", async (req, res) => {
-    const { query } = req.query;
+    const search = req.query.search || "";
 
     try {
         const result = await pool.query(`
@@ -71,7 +68,7 @@ app.get("/api/borrowed-books", async (req, res) => {
                 LOWER(br.b_id) LIKE LOWER($1) OR
                 LOWER(b.b_name) LIKE LOWER($1) OR
                 LOWER(m.m_name) LIKE LOWER($1)
-        `, [`%${query}%`]);
+        `, [`%${search}%`]);
 
         res.json(result.rows);
     } catch (err) {

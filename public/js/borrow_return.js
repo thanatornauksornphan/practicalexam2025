@@ -5,6 +5,7 @@ const app = createApp({
         const books = ref([]);
         const searchQuery = ref("");
         const borrowModal = ref(null);
+        const isModalOpen = ref(false);
         const newBorrow = ref({
             b_id: '',
             m_user: '',
@@ -14,7 +15,7 @@ const app = createApp({
         });
 
         // Fetch all borrowed books from the API
-        const FetchAllBooks = async () => {
+        const fetchAllBooks = async () => {
             try {
                 const response = await axios.get('/api/borrowed-books');
                 books.value = response.data;
@@ -26,20 +27,9 @@ const app = createApp({
 
         // Search for books by query
         const searchBooks = async () => {
-            if (!searchQuery.value) {
-                FetchAllBooks();
-                return;
-            }
-
             try {
                 const response = await axios.get(`/api/borrowed-books?search=${searchQuery.value}`);
-                const allBooks = response.data;
-
-                books.value = allBooks.filter(book => {
-                    book.b_id.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                        book.b_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                        book.m_name.toLowerCase().includes(searchQuery.value.toLowerCase())
-                });
+                books.value = response.data;
             } catch (error) {
                 console.error('Error searching books:', error);
                 alert('ไม่สามารถค้นหาข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
@@ -53,19 +43,13 @@ const app = createApp({
             borrowModal.value = modal;
         };
 
-        // Statistics Method
-        const statistics = () => {
-            // Implement your statistics functionality here
-            console.log('Statistics button clicked');
-            // Example: show a statistics modal or navigate to a statistics page
-        };
-
         // Save a new borrow record
         const saveBorrowReturn = async () => {
             try {
-                console.log('Would save : ', newBorrow.value);
-                alert('บันทึกข้อมูลสำเร็จ');
+                const response = await axios.post('/api/borrow-return', newBorrow.value);
+                console.log('Saved Borrow:', response.data);
 
+                alert('บันทึกข้อมูลสำเร็จ');
                 if (borrowModal.value) {
                     borrowModal.value.hide();
                 }
@@ -79,7 +63,7 @@ const app = createApp({
                     fine: 0
                 };
 
-                FetchAllBooks();
+                fetchAllBooks(); // Refresh the table after saving
             } catch (error) {
                 console.error('Error saving borrow:', error);
                 alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
@@ -87,7 +71,7 @@ const app = createApp({
         };
 
         // Format date to YYYY-MM-DD
-        const formatDate = (date) => {
+        const formatDate = (dateString) => {
             if (!dateString || dateString === '0000-00-00') return '-';
 
             try {
@@ -102,24 +86,30 @@ const app = createApp({
             }
         };
 
-        // Fetch all books when the component is mounted
+        // Dummy function for statistics
+        const statistics = () => {
+            console.log('Statistics button clicked');
+        };
+
         onMounted(() => {
-            FetchAllBooks();
+            fetchAllBooks();
         });
 
         return {
             books,
             searchQuery,
             newBorrow,
-            FetchAllBooks,
+            fetchAllBooks,
             searchBooks,
             showBorrowModal,
             saveBorrowReturn,
             formatDate,
-            statistics
+            statistics,
+            isModalOpen
         };
     }
 });
+
 
 // Mount the app
 document.addEventListener('DOMContentLoaded', () => {
