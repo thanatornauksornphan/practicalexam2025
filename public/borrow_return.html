@@ -8,17 +8,15 @@
             src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
         <script
             src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <style
-            src="styles.css">
-        </style>
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body>
 
         <div id="app" class="container">
-            <h2>Borrow & Return Books</h2>
+            <h2>การจัดการข้อมูลการยืม-คืนหนังสือ</h2>
             <input type="text" v-model="searchQuery"
                 placeholder="Search for a book">
-            <button>Search</button>
+            <button>ค้นหา</button>
 
             <table>
                 <thead>
