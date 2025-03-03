@@ -3,7 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
         data() {
             return {
                 searchQuery: "",
-                borrowedBooks: []
+                borrowedBooks: [],
+                showModal: false,
+                modalType: "",
+                activeTab: "borrow",
+                borrowerName: "",
+                bookID: "",
+                returnBookID: ""
             };
         },
         methods: {
@@ -18,6 +24,30 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             formatDate(dateStr) {
                 return dateStr ? new Date(dateStr).toLocaleDateString() : "-";
+            },
+            openModal(type) {
+                this.modalType = type;
+                this.showModal = true;
+            },
+            closeModal() {
+                this.showModal = false;
+            },
+            submitBorrow() {
+                if (this.borrowerName && this.bookID) {
+                    alert(`Borrow request submitted for ${this.borrowerName} (Book ID: ${this.bookID})`);
+                    this.borrowerName = "";
+                    this.bookID = "";
+                } else {
+                    alert("Please enter all details!");
+                }
+            },
+            submitReturn() {
+                if (this.returnBookID) {
+                    alert(`Return request submitted for Book ID: ${this.returnBookID}`);
+                    this.returnBookID = "";
+                } else {
+                    alert("Please enter a Book ID!");
+                }
             }
         },
         computed: {

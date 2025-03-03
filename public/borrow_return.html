@@ -10,20 +10,22 @@
             src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <link rel="stylesheet" href="styles.css">
     </head>
-    <body>
 
         <div id="app" class="container">
-            <h2>Borrow-Return Books Management</h2>
+            <h2>การจัดการข้อมูลการยืม-คืนหนังสือ</h2>
             <br>
             <input type="text" v-model="searchQuery"
                 placeholder="Search for a book">
-            <button>Search</button>
+            <button>ค้นหา</button>
             <br><br>
+
+            <!-- Button Group -->
             <div class="button-group">
-                <button>Borrow-Return</button>
-                <button>Statistics</button>
+                <button @click="openModal('borrowReturn')">Borrow-Return</button>
+                <button @click="openModal('statistics')">Statistics</button>
             </div>
 
+            <!-- Table -->
             <table>
                 <thead>
                     <tr>
@@ -46,8 +48,48 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
 
+            <!-- Modal -->
+            <div v-if="showModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" @click="closeModal">&times;</span>
+
+                    <!-- Borrow-Return Form -->
+                    <div v-if="modalType === 'borrowReturn'">
+                        <div class="modal-header">
+                            <button @click="activeTab = 'borrow'" :class="{ active: activeTab === 'borrow' }">ยิมหนังสือ</button>
+                            &nbsp;
+                            <button @click="activeTab = 'return'" :class="{ active: activeTab === 'return' }">คืนหนังสือ</button>
+                        </div>
+
+                        <div v-if="activeTab === 'borrow'">
+                            <h3>Borrow a Book</h3>
+                            <label>ผู้ที่ต้องการยืม : </label>
+                            <input type="text" v-model="borrowerName">
+                            <button @click="submitBorrow">ตกลง</button>
+                            <br><br>
+                            <label>รหัสหนังสือ : </label>
+                            <input type="text" v-model="bookID">
+                            <button @click="submitBorrow">ตกลง</button>
+                        </div>
+
+                        <div v-if="activeTab === 'return'">
+                            <h3>Return a Book</h3>
+                            <label>Book ID:</label>
+                            <input type="text" v-model="returnBookID">
+                            <button @click="submitReturn">Enter</button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Page -->
+                    <div v-if="modalType === 'statistics'">
+                        <h3>Statistics</h3>
+                        <p>Coming soon...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <script src="borrow_return.js"></script>
 
     </body>
