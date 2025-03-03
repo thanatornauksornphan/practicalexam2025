@@ -8,48 +8,9 @@
             src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
         <script
             src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <style>
-        body {
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-        }
-        input {
-            width: 60%;
-            padding: 10px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 15px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .search-btn { background-color: orange; color: black; }
-        .refresh-btn { background-color: #333; color: white; }
-        .borrow-btn { background-color: #1e3a8a; color: white; }
-        .stats-btn { background-color: #064e3b; color: white; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid white;
-            padding: 8px;
-            text-align: center;
-        }
-        th { background-color: #333; }
-    </style>
+        <style
+            src="styles.css">
+        </style>
     </head>
     <body>
 
@@ -62,12 +23,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Book ID</th>
-                        <th>Book Name</th>
-                        <th>Member Name</th>
-                        <th>Borrow Date</th>
-                        <th>Return Date</th>
-                        <th>Fine</th>
+                        <th>รหัสหนังสือ</th>
+                        <th>ชื่อหนังสือ</th>
+                        <th>ผู้ยืม-คืน</th>
+                        <th>วันที่ยืม</th>
+                        <th>วันที่คืน</th>
+                        <th>ค่าปรับ</th>
                     </tr>
                 </thead>
                 <tbody>
