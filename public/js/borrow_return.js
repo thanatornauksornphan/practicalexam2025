@@ -1,6 +1,6 @@
 const { createApp, ref, onMounted } = Vue;
 
-createApp({
+const app = createApp({
     setup() {
         const books = ref([]);
         const searchQuery = ref("");
@@ -53,6 +53,13 @@ createApp({
             borrowModal.value = modal;
         };
 
+        // Statistics Method
+        const statistics = () => {
+            // Implement your statistics functionality here
+            console.log('Statistics button clicked');
+            // Example: show a statistics modal or navigate to a statistics page
+        };
+
         // Save a new borrow record
         const saveBorrowReturn = async () => {
             try {
@@ -72,7 +79,7 @@ createApp({
                     fine: 0
                 };
 
-                fetchAllBooks();
+                FetchAllBooks();
             } catch (error) {
                 console.error('Error saving borrow:', error);
                 alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
@@ -97,18 +104,24 @@ createApp({
 
         // Fetch all books when the component is mounted
         onMounted(() => {
-            fetchAllBooks();
+            FetchAllBooks();
         });
 
         return {
             books,
             searchQuery,
             newBorrow,
-            fetchAllBooks,
+            FetchAllBooks,
             searchBooks,
             showBorrowModal,
             saveBorrowReturn,
-            formatDate
+            formatDate,
+            statistics
         };
     }
-}).mount('#app');
+});
+
+// Mount the app
+document.addEventListener('DOMContentLoaded', () => {
+    app.mount('#app');
+});

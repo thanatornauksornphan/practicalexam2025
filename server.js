@@ -1,14 +1,18 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import pg from "pg";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 const PORT = 5000;
+
+// Using ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // PostgreSQL Database Connection
 const pool = new pg.Pool({
@@ -19,16 +23,19 @@ const pool = new pg.Pool({
     port: process.env.DB_PORT
 });
 
+// Serve static files from public folder
+app.use(express.static(path.join(__dirname, "public")));
+
 // API to add new borrow/return record
 app.post("/api/borrow-return", async (req, res) => {
     const { b_id, m_user, borrow_date, return_date, fine } = req.body;
-    
+
     try {
         // Generate a unique record_id (you might want to use a more robust method)
         const recordIdResult = await pool.query("SELECT MAX(CAST(SUBSTRING(record_id, 2) AS INTEGER)) as max_id FROM tb_borrow_return");
         const maxId = recordIdResult.rows[0].max_id || 0;
         const newRecordId = `R${(maxId + 1).toString().padStart(5, '0')}`;
-        
+
         // Insert the new record
         await pool.query(
             `INSERT INTO tb_borrow_return 
@@ -36,7 +43,7 @@ app.post("/api/borrow-return", async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6)`,
             [newRecordId, b_id, m_user, borrow_date, return_date || null, fine || 0]
         );
-        
+
         res.status(201).json({ success: true, record_id: newRecordId });
     } catch (err) {
         console.error("Error adding borrow record:", err);
@@ -45,9 +52,9 @@ app.post("/api/borrow-return", async (req, res) => {
 });
 
 // API to search borrowed books
-app.get("/api/borrowed-books/search", async (req, res) => {
+app.get("/api/borrowed-books", async (req, res) => {
     const { query } = req.query;
-    
+
     try {
         const result = await pool.query(`
             SELECT 
@@ -65,12 +72,17 @@ app.get("/api/borrowed-books/search", async (req, res) => {
                 LOWER(b.b_name) LIKE LOWER($1) OR
                 LOWER(m.m_name) LIKE LOWER($1)
         `, [`%${query}%`]);
-        
+
         res.json(result.rows);
     } catch (err) {
         console.error("Error searching borrowed books:", err);
         res.status(500).json({ error: "Database query error" });
     }
+});
+
+// Default route to serve the HTML page
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "borrow_return.html"));
 });
 
 // Start the server
