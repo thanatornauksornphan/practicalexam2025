@@ -1,155 +1,154 @@
 /* Global Styles */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 /* Dark Theme */
 body {
-    background-color: #1e1e1e;
-    color: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    flex-direction: column;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
 }
 
 /* Container */
 .container {
-    width: 80%;
-    margin: 20px auto;
-    background: #222;
-    padding: 20px;
-    border-radius: 10px;
-    color: white;
-    text-align: center;
+  width: 80%;
+  margin: 20px auto;
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+  text-align: center;
 }
 
 /* Header */
 h2 {
-    text-align: center;
+  text-align: center;
 }
 
 /* Search Input */
 input[type="text"] {
-    width: 60%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    background: #333;
-    color: white;
-    outline: none;
-    margin-right: 10px;
+  width: 60%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background: #333;
+  color: white;
+  outline: none;
+  margin-right: 10px;
 }
 
 input[type="text"]::placeholder {
-    color: #888;
+  color: #888;
 }
 
 /* Search Button */
 button {
-    padding: 10px 20px;
-    background:   #1e8449 ;
-    border: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: bold;
+  padding: 10px 20px;
+  background: #1e8449;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: bold;
 }
 
 button:hover {
-    background: #e68a00;
+  background: #e68a00;
 }
 
 /* Button Group (Top Left) */
 .button-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: right;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: right;
 }
 
 .button-group button {
-    padding: 10px 15px;
-    font-size: 14px;
+  padding: 10px 15px;
+  font-size: 14px;
 }
 
 .button-group button:first-child {
-    background: #007bff;
-    color: white;
+  background: #007bff;
+  color: white;
 }
 
 .button-group button:first-child:hover {
-    background: #0056b3;
+  background: #0056b3;
 }
 
 .button-group button:last-child {
-    background: #28a745;
-    color: white;
+  background: #28a745;
+  color: white;
 }
 
 .button-group button:last-child:hover {
-    background: #1e7e34;
+  background: #1e7e34;
 }
-
 
 /* Table */
 table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-    background: #333;
-    border-radius: 10px;
-    overflow: hidden;
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 /* Table Headers */
 thead {
-    background: #444;
+  background: #444;
 }
 
 th {
-    padding: 15px;
-    text-align: left;
-    color: #229954;    ;
+  padding: 15px;
+  text-align: left;
+  color: #229954;
 }
 
 /* Table Rows */
 td {
-    padding: 12px;
-    border-bottom: 1px solid #555;
-    text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #555;
+  text-align: left;
 }
 
 /* Row Hover Effect */
 tbody tr:hover {
-    background: #444;
-    transition: 0.3s;
+  background: #444;
+  transition: 0.3s;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .container {
-        width: 95%;
-        padding: 15px;
-    }
+  .container {
+    width: 95%;
+    padding: 15px;
+  }
 
-    input[type="text"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
+  input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+  }
 
-    button {
-        width: 100%;
-    }
+  button {
+    width: 100%;
+  }
 
-    table {
-        font-size: 14px;
-    }
+  table {
+    font-size: 14px;
+  }
 }

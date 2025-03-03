@@ -7,8 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 showModal: false,
                 modalType: "",
                 activeTab: "borrow",
-                borrowerName: "",
+                borrowerID: "",
                 bookID: "",
+                borrowerName: "",
                 returnBookID: ""
             };
         },
@@ -32,21 +33,51 @@ document.addEventListener("DOMContentLoaded", () => {
             closeModal() {
                 this.showModal = false;
             },
-            submitBorrow() {
-                if (this.borrowerName && this.bookID) {
-                    alert(`Borrow request submitted for ${this.borrowerName} (Book ID: ${this.bookID})`);
-                    this.borrowerName = "";
-                    this.bookID = "";
-                } else {
-                    alert("Please enter all details!");
+            async submitBorrow() {
+                if (!this.borrowerID || !this.bookID) {
+                    alert("Please fill in all fields.");
+                    return;
+                }
+                try {
+                    const response = await fetch("/api/borrow", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            borrowerID: this.borrowerID,
+                            bookID: this.bookID
+                        })
+                    });
+                    if (response.ok) {
+                        alert("Book borrowed successfully!");
+                        this.fetchBorrowedBooks();
+                        this.closeModal();
+                    } else {
+                        alert("Failed to borrow book.");
+                    }
+                } catch (error) {
+                    console.error("Error borrowing book:", error);
                 }
             },
-            submitReturn() {
-                if (this.returnBookID) {
-                    alert(`Return request submitted for Book ID: ${this.returnBookID}`);
-                    this.returnBookID = "";
-                } else {
-                    alert("Please enter a Book ID!");
+            async submitReturn() {
+                if (!this.returnBookID) {
+                    alert("Please enter a book ID to return.");
+                    return;
+                }
+                try {
+                    const response = await fetch("/api/return", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ bookID: this.returnBookID })
+                    });
+                    if (response.ok) {
+                        alert("Book returned successfully!");
+                        this.fetchBorrowedBooks();
+                        this.closeModal();
+                    } else {
+                        alert("Failed to return book.");
+                    }
+                } catch (error) {
+                    console.error("Error returning book:", error);
                 }
             }
         },

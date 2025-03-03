@@ -57,13 +57,14 @@
                     <!-- Borrow-Return Form -->
                     <div v-if="modalType === 'borrowReturn'">
                         <div class="modal-header">
-                            <button @click="activeTab = 'borrow'" :class="{ active: activeTab === 'borrow' }">ยิมหนังสือ</button>
+                            <button @click="activeTab = 'borrow'" :class="{ active: activeTab === 'borrow' }">ยืมหนังสือ</button>
                             &nbsp;
                             <button @click="activeTab = 'return'" :class="{ active: activeTab === 'return' }">คืนหนังสือ</button>
                         </div>
-
+                        <br>
                         <div v-if="activeTab === 'borrow'">
-                            <h3>Borrow a Book</h3>
+                            <h3>ยืมหนังสือ</h3>
+                            <br>
                             <label>ผู้ที่ต้องการยืม : </label>
                             <input type="text" v-model="borrowerName">
                             <button @click="submitBorrow">ตกลง</button>
