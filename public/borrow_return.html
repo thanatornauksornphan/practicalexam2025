@@ -103,16 +103,16 @@
                                 <tr>
                                     <th>รหัสหนังสือ</th>
                                     <th>ชื่อหนังสือ</th>
-                                    <th v-if="isBorrowMode">ชื่อ-สกุลผู้ยืม</th>
+                                    <th>ชื่อผู้ยืม</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="entry in tempEntries"
                                     :key="entry.b_id">
                                     <td>{{ entry.b_id }}</td>
-                                    <td>{{ entry.book_name }}</td>
-                                    <td v-if="isBorrowMode">{{ entry.m_user
-                                        }}</td>
+                                    <td>{{ entry.b_name }}</td>
+                                    <td>{{ entry.m_user }}</td>
+                                    
                                 </tr>
                             </tbody>
                         </table>
@@ -120,7 +120,7 @@
                         <!-- Show Book Details when found -->
                         <div v-if="returnEntry">
                             <p>ชื่อหนังสือ: {{ returnEntry.b_name }}</p>
-                            <p>ชื่อผู้ยืม: {{ returnEntry.m_user }}</p>
+                            <p>ชื่อผู้ยืม: {{ returnEntry.m_name }}</p>
                             <p>วันที่ยืม: {{ returnEntry.borrow_date }}</p>
                             <p>ค่าปรับ: <input v-model="returnEntry.fine"
                                     type="number"></p>
@@ -129,8 +129,10 @@
 
                     <!-- Footer Buttons -->
                     <div class="modal-footer">
-                        <button @click="saveBorrowReturn">{{ isBorrowMode ?
-                            "ยืมหนังสือ" : "คืนหนังสือ" }}</button>
+                        <button
+                            @click="isBorrowMode ? saveBorrowReturn() : returnBook()">
+                            {{ isBorrowMode ? "ยืมหนังสือ" : "คืนหนังสือ" }}
+                        </button>
                         <button @click="isModalOpen = false">ยกเลิก</button>
                     </div>
                 </div>

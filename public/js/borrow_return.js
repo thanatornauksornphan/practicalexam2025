@@ -42,15 +42,17 @@ const app = Vue.createApp({
                 const response = await axios.get(`/api/borrow-return/${returnBookId.value}`);
                 if (response.data) {
                     returnEntry.value = response.data;
-                } else {
-                    alert('ไม่พบข้อมูลหนังสือที่ต้องการคืน');
-                    returnEntry.value = null;
                 }
-            } catch (errror) {
-                console.error('Error fetching return details:', error);
-                alert('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            } catch (error) {
+                if (error.response && error.response.status === 404) {
+                    alert('ไม่พบข้อมูลการยืมหนังสือเล่มนี้');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการค้นหาข้อมูล');
+                }
+                returnEntry.value = null;
             }
         };
+
         // Search for books by query
         const searchBooks = async () => {
             try {
@@ -73,7 +75,6 @@ const app = Vue.createApp({
         // Switch between Borrow and Return mode
         const toggleMode = (mode) => {
             isBorrowMode.value = mode === 'borrow';
-            isBorrowMode.value = mode === 'return';
             clearEntry();
         };
 
@@ -93,22 +94,38 @@ const app = Vue.createApp({
             }
         };
 
-        const addEntryToTable = () => {
-            if (!newEntry.value.b_id || (isBorrowMode.value && !newEntry.value.m_user)) {
+        const addEntryToTable = async () => {
+            if (!newEntry.value.b_id || !newEntry.value.m_user) {
                 alert("กรุณากรอกข้อมูลให้ครบถ้วน");
                 return;
             }
 
-            tempEntries.value.push({
-                b_id: newEntry.value.b_id?.trim() || '',
-                b_name: bookName.value || 'Unknown',
-                m_user: newEntry.value.m_user?.trim() || '',
-                borrow_date: newEntry.value.borrow_date || new Date().toISOString().substr(0, 10),
-                return_date: newEntry.value.return_date || '',
-                fine: 0
-            });
+            try {
+                const response = await axios.get(`/api/books/${newEntry.value.b_id}`);
+                const bookName = response.data.b_name || 'ไม่พบข้อมูลหนังสือ';
 
-            clearEntry();
+                tempEntries.value.push({
+                    b_id: newEntry.value.b_id.trim(),
+                    b_name: bookName,
+                    m_user: newEntry.value.m_user.trim(),
+                    borrow_date: newEntry.value.borrow_date
+                });
+
+                clearEntry();
+            } catch (error) {
+                console.error('Error fetching book:', error);
+                alert('ไม่สามารถโหลดข้อมูลหนังสือได้');
+            }
+        };
+
+        const getUserIdByName = async (name) => {
+            try {
+                const response = await axios.get(`/api/members/${name}`);
+                return response.data.m_user;
+            } catch (error) {
+                console.error("Error fetching user ID:", error);
+                alert('ไม่พบข้อมูลผู้ใช้');
+            }
         };
 
         // Save Borrow/Return data
@@ -120,26 +137,31 @@ const app = Vue.createApp({
 
             try {
                 for (const entry of tempEntries.value) {
+                    // Fetch m_user (user ID) based on entered name
+                    const m_user = await getUserIdByName(entry.m_user);
+                    if (!m_user) {
+                        alert("ไม่พบข้อมูลผู้ใช้งาน");
+                        return;
+                    }
+
                     const payload = {
                         b_id: entry.b_id?.trim(),
-                        b_name: entry.b_name,
-                        m_user: isBorrowMode.value ? entry.m_user : null,
-                        borrow_date: new Date().toISOString().substr(0, 10),
-                        return_date: isBorrowMode.value ? null : new Date().toISOString().substr(0, 10),
-                        fine: isBorrowMode.value ? 0 : entry.fine
+                        m_user: m_user, // Use m_user (user ID)
+                        borrow_date: entry.borrow_date || new Date().toISOString().substr(0, 10)
                     };
 
                     console.log('Sending payload:', JSON.stringify(payload, null, 2));
 
-                    if (!payload.b_id || !payload.borrow_date) {
+                    if (!payload.b_id || !payload.m_user) {
                         console.error('🚨 Missing required fields! Payload:', payload);
                         alert('Missing required fields! Please check book ID and borrow date.');
                         return;
                     }
 
+                    const apiUrl = isBorrowMode.value ? '/api/borrow-return' : `/api/borrow-return/${entry.b_id}`;
+
                     try {
-                        console.log('Sending payload:', payload);
-                        const response = await axios.post('/api/borrow-return', payload);
+                        const response = await axios.post(apiUrl, payload);
                         console.log("Server Response:", response.data);
                     } catch (entryError) {
                         console.error("Failed to save entry:", entry.b_id, entryError.response?.data || entryError.message);
@@ -152,9 +174,8 @@ const app = Vue.createApp({
                 fetchAllBooks();
             } catch (error) {
                 console.error('Error saving borrow:', error);
-
+                alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
                 if (error.response) {
-                    // The server responded with an error status
                     console.error('Server error details:', error.response.data);
                     console.error('Status code:', error.response.status);
                     alert(`ไม่สามารถบันทึกข้อมูลได้: ${error.response.data.message || error.response.data || 'Server error'}`);
@@ -167,7 +188,7 @@ const app = Vue.createApp({
         // Process book return
         const returnBook = async () => {
             if (!returnEntry.value) {
-                alert('ไม่พบข้อมูลหนังสือที่ต้องการคืน');
+                alert('กรุณาเลือกหนังสือที่จะคืน');
                 return;
             }
 
@@ -186,6 +207,23 @@ const app = Vue.createApp({
                 alert('ไม่สามารถคืนหนังสือได้ กรุณาลองใหม่อีกครั้ง');
             }
         };
+
+        const members = ref([]);
+
+        const fetchMembers = async () => {
+            try {
+                const response = await axios.get('/api/members');
+                members.value = response.data;
+            } catch (error) {
+                console.error('Error fetching members:', error);
+            }
+        };
+
+        onMounted(() => {
+            fetchAllBooks();
+            fetchMembers();
+        });
+
 
         // Clear input fields
         const clearEntry = () => {
@@ -230,9 +268,9 @@ const app = Vue.createApp({
             searchQuery,
             fetchAllBooks,
             fetchReturnDetails,
-            returnBook, 
-            returnBookId, 
-            returnEntry, 
+            returnBook,
+            returnBookId,
+            returnEntry,
             clearEntry,
             searchBooks,
             showBorrowModal,
@@ -240,6 +278,8 @@ const app = Vue.createApp({
             formatDate,
             addEntryToTable,
             saveBorrowReturn,
+            toggleMode,
+            addToTable,
         };
     }
 });
