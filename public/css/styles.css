@@ -190,13 +190,14 @@ tr:hover {
 }
 
 .data-table th, .data-table td {
-  border: 1px solid #ddd;
+  border: 1px solid #fff;
   padding: 8px;
   text-align: center;
 }
 
 .data-table th {
   background-color: #f4f4f4;
+  color: #333;
   font-weight: bold;
 }
 

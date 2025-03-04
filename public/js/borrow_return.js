@@ -79,11 +79,11 @@ const app = Vue.createApp({
 
             tempEntries.value.push({
                 b_id: newEntry.value.b_id,
+                b_name: bookName.value,
                 m_user: isBorrowMode.value ? newEntry.value.m_user : 'N/A',
-                book_name: `Book ${newEntry.value.b_id}` // Placeholder for book name, can be fetched later
             });
 
-            clearEntry(); // Clear input fields after adding
+            clearEntry();
         };
 
         // Save Borrow/Return data
@@ -92,23 +92,43 @@ const app = Vue.createApp({
                 alert("ไม่มีข้อมูลที่ต้องบันทึก");
                 return;
             }
-
+        
             try {
                 for (const entry of tempEntries.value) {
-                    await axios.post('/api/borrow-return', {
-                        m_user: isBorrowMode.value ? entry.m_user : null,
+                    const payload = {
                         b_id: entry.b_id,
+                        b_name: entry.b_name,
+                        m_user: isBorrowMode.value ? entry.m_user : null,
                         action: isBorrowMode.value ? 'borrow' : 'return'
-                    });
+                    };
+                    
+                    console.log('Sending payload:', payload);
+                    
+                    try {
+                        const response = await axios.post('/api/borrow-return', payload);
+                        console.log('Success for entry:', entry.b_id, response.data);
+                    } catch (entryError) {
+                        console.error('Failed for entry:', entry.b_id, entryError);
+                        // Continue with other entries even if one fails
+                        throw entryError; // Re-throw to handle in outer catch
+                    }
                 }
-
+        
                 alert('บันทึกข้อมูลสำเร็จ');
                 isModalOpen.value = false;
                 tempEntries.value = []; // Clear table after saving
                 fetchAllBooks();
             } catch (error) {
                 console.error('Error saving borrow:', error);
-                alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+                
+                if (error.response) {
+                    // The server responded with an error status
+                    console.error('Server error details:', error.response.data);
+                    console.error('Status code:', error.response.status);
+                    alert(`ไม่สามารถบันทึกข้อมูลได้: ${error.response.data.message || error.response.data || 'Server error'}`);
+                } else {
+                    alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+                }
             }
         };
 
