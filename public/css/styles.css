@@ -135,7 +135,7 @@ tr:hover {
 }
 
 .modal-header {
-  display: flex;
+  display: flow-root;
   justify-content: space-around;
 }
 
@@ -148,7 +148,13 @@ tr:hover {
 }
 
 .modal-header button.active {
-  background: #007bff;
+  background: #8A9A5B;
+  color: white;
+  font-weight: bold;
+}
+
+.modal-header button:hover {
+  background: #4F7942;
   color: white;
   font-weight: bold;
 }
@@ -172,7 +178,7 @@ tr:hover {
 
 .form-group button {
   padding: 6px 10px;
-  background: #28a745;
+  background: #8A9A5B;
   color: white;
   border: none;
   cursor: pointer;
@@ -180,7 +186,7 @@ tr:hover {
 }
 
 .form-group button:hover {
-  background: #218838;
+  background: #4F7942;
 }
 
 .data-table {
@@ -209,14 +215,14 @@ tr:hover {
 .modal-footer button {
   padding: 8px 16px;
   border: none;
-  background: #007bff;
+  background: #8A9A5B;
   color: white;
   cursor: pointer;
   transition: 0.3s;
 }
 
 .modal-footer button:hover {
-  background: #0056b3;
+  background: #355E3B;
 }
 
 /* Animations */

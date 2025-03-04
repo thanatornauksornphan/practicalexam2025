@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>การยืม-คืนหนังสือ</title>
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <link rel="stylesheet" href="css/styles.css">
         <script src="js/borrow_return.js"></script>
     </head>
@@ -77,7 +78,7 @@
                             <label>ผู้ที่ต้องการยืม :</label>
                             <input v-model="newEntry.m_user" type="text"
                                 placeholder="กรอกชื่อผู้ใช้งาน">
-                            <button @click="addEntryToTable">Enter</button>
+                            <button @click="addEntryToTable">ตกลง</button>
                         </div>
 
                         <!-- Book ID input (Required for both Borrow and Return) -->
@@ -85,7 +86,7 @@
                             <label>รหัสหนังสือ :</label>
                             <input v-model="newEntry.b_id" type="text"
                                 placeholder="กรอกรหัสหนังสือ">
-                            <button @click="addEntryToTable">Enter</button>
+                            <button @click="addEntryToTable">ตกลง</button>
                         </div>
 
                         <!-- Table to show entered books -->

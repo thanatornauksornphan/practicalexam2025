@@ -28,17 +28,20 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // API to add new borrow/return record
 app.post("/api/borrow-return", async (req, res) => {
-    const { b_id, m_user, borrow_date, return_date, fine } = req.body;
-
+    console.log("Incoming request data:", req.body);
+    const { b_id, b_name, m_user, borrow_date, return_date, fine } = req.body;
+    if (!b_id || !b_name) {
+        return res.status(400).json({ error: "Missing book ID or book name" });
+    }
     try {
         const recordIdResult = await pool.query("SELECT COALESCE(MAX(CAST(SUBSTRING(record_id, 2) AS INTEGER)), 0) + 1 AS next_id FROM tb_borrow_return");
         const newRecordId = `R${recordIdResult.rows[0].next_id.toString().padStart(5, '0')}`;
 
         await pool.query(
             `INSERT INTO tb_borrow_return 
-            (record_id, b_id, m_user, borrow_date, return_date, fine) 
+            (record_id, b_name, m_user, borrow_date, return_date, fine) 
             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [newRecordId, b_id, m_user, borrow_date, return_date || null, fine || 0]
+            [newRecordId, b_name, m_user, borrow_date, return_date || null, fine || 0]
         );
 
         res.status(201).json({ success: true, record_id: newRecordId });
@@ -46,6 +49,8 @@ app.post("/api/borrow-return", async (req, res) => {
         console.error("Error adding borrow record:", err);
         res.status(500).json({ error: "Database error when adding record" });
     }
+
+
 });
 
 // API to search borrowed books
@@ -62,8 +67,8 @@ app.get("/api/borrowed-books", async (req, res) => {
                 br.return_date, 
                 br.fine
             FROM tb_borrow_return br
-            JOIN tb_book b ON br.b_id = b.b_id
-            JOIN tb_member m ON br.m_user = m.m_user
+            LEFT JOIN tb_book b ON br.b_id = b.b_id
+            LEFT JOIN tb_member m ON br.m_user = m.m_user
             WHERE 
                 LOWER(br.b_id) LIKE LOWER($1) OR
                 LOWER(b.b_name) LIKE LOWER($1) OR

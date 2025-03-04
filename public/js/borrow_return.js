@@ -4,12 +4,12 @@ const app = Vue.createApp({
     setup() {
         const books = ref([]);
         const searchQuery = ref("");
-        const borrowModal = ref(null);
         const isModalOpen = ref(false);
         const isBorrowMode = ref(true);
         const bookName = ref("");
         const newEntry = ref({
             b_id: '',
+            b_name: '',
             m_user: '',
             borrow_date: new Date().toISOString().substr(0, 10),
             return_date: '',
@@ -56,14 +56,14 @@ const app = Vue.createApp({
         };
 
         // Add user or book ID to the table
-        const addToTable = (type) => {
+        const addToTable = async (type) => {
             if (type === 'm_user' && newEntry.value.m_user.trim() === '') return;
             if (type === 'b_id' && newEntry.value.b_id.trim() === '') return;
 
             if (type === 'b_id') {
                 try {
-                    const response = axios.get(`/api/books/${newEntry.value.b_id}`);
-                    bookName.value = response.data.name || 'ไม่พบข้อมูลหนังสือ';
+                    const response = await axios.post(`/api/books/${newEntry.value.b_id}`);
+                    bookName.value = response.data.b_name || 'ไม่พบข้อมูลหนังสือ';
                 } catch (error) {
                     console.error('Error fetching book:', error);
                     bookName.value = 'ไม่สามารถโหลดข้อมูลหนังสือได้';
@@ -80,7 +80,8 @@ const app = Vue.createApp({
             tempEntries.value.push({
                 b_id: newEntry.value.b_id,
                 b_name: bookName.value,
-                m_user: isBorrowMode.value ? newEntry.value.m_user : 'N/A',
+                m_user: newEntry.value.m_user,
+                
             });
 
             clearEntry();
@@ -92,18 +93,20 @@ const app = Vue.createApp({
                 alert("ไม่มีข้อมูลที่ต้องบันทึก");
                 return;
             }
-        
+
             try {
                 for (const entry of tempEntries.value) {
                     const payload = {
                         b_id: entry.b_id,
                         b_name: entry.b_name,
                         m_user: isBorrowMode.value ? entry.m_user : null,
-                        action: isBorrowMode.value ? 'borrow' : 'return'
+                        borrow_date: new Date().toISOString().substr(0, 10),
+                        return_date: isBorrowMode.value ? null : new Date().toISOString().substr(0, 10),
+                        fine: isBorrowMode.value ? 0 : entry.fine
                     };
-                    
+
                     console.log('Sending payload:', payload);
-                    
+
                     try {
                         const response = await axios.post('/api/borrow-return', payload);
                         console.log('Success for entry:', entry.b_id, response.data);
@@ -113,14 +116,14 @@ const app = Vue.createApp({
                         throw entryError; // Re-throw to handle in outer catch
                     }
                 }
-        
+
                 alert('บันทึกข้อมูลสำเร็จ');
                 isModalOpen.value = false;
                 tempEntries.value = []; // Clear table after saving
                 fetchAllBooks();
             } catch (error) {
                 console.error('Error saving borrow:', error);
-                
+
                 if (error.response) {
                     // The server responded with an error status
                     console.error('Server error details:', error.response.data);
@@ -131,7 +134,6 @@ const app = Vue.createApp({
                 }
             }
         };
-
 
         // Clear input fields
         const clearEntry = () => {
