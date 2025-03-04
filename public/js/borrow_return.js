@@ -17,6 +17,8 @@ const app = Vue.createApp({
         });
 
         const tempEntries = ref([]);
+        const returnBookId = ref("");
+        const returnEntry = ref(null);
 
         // Fetch all borrowed books from the API
         const fetchAllBooks = async () => {
@@ -29,6 +31,26 @@ const app = Vue.createApp({
             }
         };
 
+        // Fetch book details when returning
+        const fetchReturnDetails = async () => {
+            if (!returnBookId.value.trim()) {
+                alert('กรุณากรอกหมายเลขหนังสือที่ต้องการคืน');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/borrow-return/${returnBookId.value}`);
+                if (response.data) {
+                    returnEntry.value = response.data;
+                } else {
+                    alert('ไม่พบข้อมูลหนังสือที่ต้องการคืน');
+                    returnEntry.value = null;
+                }
+            } catch (errror) {
+                console.error('Error fetching return details:', error);
+                alert('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        };
         // Search for books by query
         const searchBooks = async () => {
             try {
@@ -78,10 +100,12 @@ const app = Vue.createApp({
             }
 
             tempEntries.value.push({
-                b_id: newEntry.value.b_id,
-                b_name: bookName.value,
-                m_user: newEntry.value.m_user,
-                
+                b_id: newEntry.value.b_id?.trim() || '',
+                b_name: bookName.value || 'Unknown',
+                m_user: newEntry.value.m_user?.trim() || '',
+                borrow_date: newEntry.value.borrow_date || new Date().toISOString().substr(0, 10),
+                return_date: newEntry.value.return_date || '',
+                fine: 0
             });
 
             clearEntry();
@@ -97,7 +121,7 @@ const app = Vue.createApp({
             try {
                 for (const entry of tempEntries.value) {
                     const payload = {
-                        b_id: entry.b_id,
+                        b_id: entry.b_id?.trim(),
                         b_name: entry.b_name,
                         m_user: isBorrowMode.value ? entry.m_user : null,
                         borrow_date: new Date().toISOString().substr(0, 10),
@@ -105,15 +129,20 @@ const app = Vue.createApp({
                         fine: isBorrowMode.value ? 0 : entry.fine
                     };
 
-                    console.log('Sending payload:', payload);
+                    console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
+                    if (!payload.b_id || !payload.borrow_date) {
+                        console.error('🚨 Missing required fields! Payload:', payload);
+                        alert('Missing required fields! Please check book ID and borrow date.');
+                        return;
+                    }
 
                     try {
+                        console.log('Sending payload:', payload);
                         const response = await axios.post('/api/borrow-return', payload);
-                        console.log('Success for entry:', entry.b_id, response.data);
+                        console.log("Server Response:", response.data);
                     } catch (entryError) {
-                        console.error('Failed for entry:', entry.b_id, entryError);
-                        // Continue with other entries even if one fails
-                        throw entryError; // Re-throw to handle in outer catch
+                        console.error("Failed to save entry:", entry.b_id, entryError.response?.data || entryError.message);
                     }
                 }
 
@@ -132,6 +161,29 @@ const app = Vue.createApp({
                 } else {
                     alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
                 }
+            }
+        };
+
+        // Process book return
+        const returnBook = async () => {
+            if (!returnEntry.value) {
+                alert('ไม่พบข้อมูลหนังสือที่ต้องการคืน');
+                return;
+            }
+
+            try {
+                await axios.delete(`/api/borrow-return/${returnBookId.value}`, {
+                    data: { fine: returnEntry.value.fine }
+                });
+
+                alert('คืนหนังสือสำเร็จ');
+                returnEntry.value = null;
+                returnBookId.value = '';
+                isModalOpen.value = false;
+                fetchAllBooks();
+            } catch (error) {
+                console.error('Error returning book:', error);
+                alert('ไม่สามารถคืนหนังสือได้ กรุณาลองใหม่อีกครั้ง');
             }
         };
 
@@ -174,18 +226,20 @@ const app = Vue.createApp({
             isBorrowMode,
             newEntry,
             tempEntries,
-            showBorrowModal,
-            addEntryToTable,
-            saveBorrowReturn,
-            clearEntry,
             books,
             searchQuery,
+            fetchAllBooks,
+            fetchReturnDetails,
+            returnBook, 
+            returnBookId, 
+            returnEntry, 
+            clearEntry,
             searchBooks,
-            toggleMode,
-            addToTable,
-            formatDate,
+            showBorrowModal,
             statistics,
-            bookName,
+            formatDate,
+            addEntryToTable,
+            saveBorrowReturn,
         };
     }
 });

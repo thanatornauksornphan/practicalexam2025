@@ -60,6 +60,7 @@
                 </table>
             </div>
 
+            <!-- Modal -->
             <div v-if="isModalOpen" class="modal-backdrop">
                 <div class="modal">
                     <div class="modal-header">
@@ -81,12 +82,19 @@
                             <button @click="addEntryToTable">ตกลง</button>
                         </div>
 
-                        <!-- Book ID input (Required for both Borrow and Return) -->
-                        <div class="form-group">
+                        <div class="form-group" v-if="isBorrowMode">
                             <label>รหัสหนังสือ :</label>
                             <input v-model="newEntry.b_id" type="text"
                                 placeholder="กรอกรหัสหนังสือ">
                             <button @click="addEntryToTable">ตกลง</button>
+                        </div>
+
+                        <!-- Return Mode: Only requires Book ID -->
+                        <div class="form-group" v-if="!isBorrowMode">
+                            <label>รหัสหนังสือที่ต้องการคืน : </label>
+                            <input v-model="returnBookId" type="text"
+                                placeholder="กรอกรหัสหนังสือ">
+                            <button @click="fetchReturnDetails">ตกลง</button>
                         </div>
 
                         <!-- Table to show entered books -->
@@ -108,6 +116,15 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- Show Book Details when found -->
+                        <div v-if="returnEntry">
+                            <p>ชื่อหนังสือ: {{ returnEntry.b_name }}</p>
+                            <p>ชื่อผู้ยืม: {{ returnEntry.m_user }}</p>
+                            <p>วันที่ยืม: {{ returnEntry.borrow_date }}</p>
+                            <p>ค่าปรับ: <input v-model="returnEntry.fine"
+                                    type="number"></p>
+                        </div>
                     </div>
 
                     <!-- Footer Buttons -->

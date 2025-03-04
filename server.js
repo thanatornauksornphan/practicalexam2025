@@ -28,30 +28,74 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // API to add new borrow/return record
 app.post("/api/borrow-return", async (req, res) => {
-    console.log("Incoming request data:", req.body);
+    console.log("Received Data : ", req.body);
     const { b_id, b_name, m_user, borrow_date, return_date, fine } = req.body;
     if (!b_id || !b_name) {
-        return res.status(400).json({ error: "Missing book ID or book name" });
+        return res.status(400).json({ error: "Missing required fields: b_id or borrow_date" });
     }
     try {
         const recordIdResult = await pool.query("SELECT COALESCE(MAX(CAST(SUBSTRING(record_id, 2) AS INTEGER)), 0) + 1 AS next_id FROM tb_borrow_return");
         const newRecordId = `R${recordIdResult.rows[0].next_id.toString().padStart(5, '0')}`;
 
+        const bookResult = await pool.query("SELECT b_name FROM tb_book WHERE b_id = $1", [b_id]);
+        if (bookResult.rows.length === 0) {
+            return res.status(404).json({ error: "Book not found" });
+        }
+        const b_name = bookResult.rows[0].b_name;
+
         await pool.query(
             `INSERT INTO tb_borrow_return 
             (record_id, b_name, m_user, borrow_date, return_date, fine) 
             VALUES ($1, $2, $3, $4, $5, $6)`,
+
             [newRecordId, b_name, m_user, borrow_date, return_date || null, fine || 0]
+
         );
 
+        console.log("Success: Added borrow record", newRecordId);
         res.status(201).json({ success: true, record_id: newRecordId });
     } catch (err) {
-        console.error("Error adding borrow record:", err);
-        res.status(500).json({ error: "Database error when adding record" });
+        console.error("❌ Database error:", err.message, "\nStack Trace:", err.stack);
+        res.status(500).json({ error: err.message });
     }
-
-
 });
+
+app.get("/api/borrow-return/:b_id", async (req, res) => {
+    const { b_id } = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT b_id, m_user, borrow_date, return_date, fine 
+             FROM tb_borrow_return WHERE b_id = $1`,
+            [b_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Book not found or not borrowed." });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching return details:", error);
+        res.status(500).json({ error: "Database error while fetching return details." });
+    }
+});
+
+app.delete("/api/borrow-return/:b_id", async (req, res) => {
+    const { b_id } = req.params;
+    const { fine } = req.body;
+
+    try {
+        // Optional: Store fine in another table before deleting
+        await pool.query(`DELETE FROM tb_borrow_return WHERE b_id = $1`, [b_id]);
+
+        res.json({ message: "Book returned successfully." });
+    } catch (error) {
+        console.error("Error returning book:", error);
+        res.status(500).json({ error: "Database error while returning book." });
+    }
+});
+
 
 // API to search borrowed books
 app.get("/api/borrowed-books", async (req, res) => {
